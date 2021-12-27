@@ -21,6 +21,9 @@ public class myDepartmentService implements DepartmentService {
     static PreparedStatement preparedStatement;
     static ResultSet resultSet;
 
+
+
+    
     @Override
     public int addDepartment(String name) {
         try {
