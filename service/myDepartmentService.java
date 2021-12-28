@@ -16,18 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class myDepartmentService implements DepartmentService {
-    static Connection connection;
+
     static String sql;
     static PreparedStatement preparedStatement;
     static ResultSet resultSet;
 
-
-
-    
     @Override
     public int addDepartment(String name) {
         try {
-            connection = SQLDataSource.getInstance().getSQLConnection();
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "insert into department(dept_name) values (?)";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, name);
@@ -73,7 +70,7 @@ public class myDepartmentService implements DepartmentService {
             }
 
             //删除department
-            sql="delete from department where dept_id=(?);";
+            sql = "delete from department where dept_id=(?);";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.execute();
