@@ -22,18 +22,15 @@ public class myStudentService implements StudentService {
         try {
             PreparedStatement prstAddStu;
             Connection con = SQLDataSource.getInstance().getSQLConnection();
-//            String inSql = "insert into students (sid, first_name, last_name, major_id, enrolled_date) values ("+userId+","+firstName+","+lastName+","+majorId+",?) on conflict do nothing";
             String inSql = "insert into students (sid, major_id, first_name, last_name,  enrolled_date) values (?,?,?,?,?) on conflict do nothing";
             prstAddStu = con.prepareStatement(inSql);
-            //prstAddStu.setDate(1,enrolledDate);
             prstAddStu.setInt(1,userId);
             prstAddStu.setInt(2,majorId);
             prstAddStu.setString(3,firstName);
             prstAddStu.setString(4,lastName);
             prstAddStu.setDate(5,enrolledDate);
-            
 
-            prstAddStu.execute();// todo Batch?? if no return
+            prstAddStu.execute();
             prstAddStu.close();
             con.close();
         } catch (SQLException e) {
@@ -76,20 +73,21 @@ public class myStudentService implements StudentService {
             Connection conn =  SQLDataSource.getInstance().getSQLConnection();
 //            String searchSql = "select case  when course_state = 'SELECTED' then false else true  end as already_marked " +
 //                    "from student_courses where sid = " +studentId+ " and section_id = "+sectionId;
-            String searchSql = "select * from drop_course("+studentId+ ","+sectionId+ ")  as throw";
+            String searchSql = "select * from drop_course("+studentId+ ","+sectionId+ ")";
             PreparedStatement stmt1 = conn.prepareStatement(searchSql);
-            ResultSet rs = stmt1.executeQuery();
-            if(rs.next()) {
-                if(rs.getBoolean("throw")){
-                    throw new IllegalStateException();
-                }
-            }
-            rs.close();
+            stmt1.execute();
+//            ResultSet rs = stmt1.executeQuery();
+//            if(rs.next()) {
+//                if(rs.getBoolean("throw")){
+//                    throw new IllegalStateException();
+//                }
+//            }
+//            rs.close();
             stmt1.close();
             conn.close();
         } catch (SQLException e) {
-
-            e.printStackTrace();
+            throw new IllegalStateException();
+           // e.printStackTrace();
         }
     }
 
@@ -132,10 +130,10 @@ public class myStudentService implements StudentService {
                 }
 
                 Grade grade;
-                int mark = rs.getInt("mark");
+                short mark = rs.getShort("mark");
                 if(mark != -1){
                     grade = new HundredMarkGrade((short) mark);
-                }else {// todo mark ==-1(null)
+                }else {// mark ==-1(null)
                     String courseState = rs.getString("course_state");
                     switch (courseState) {
                         case "SELECTED": //未判分
@@ -153,20 +151,44 @@ public class myStudentService implements StudentService {
                             break;
                     }
                 }
-                if(grade == null){// 未设置成绩，必然最新
+                if(!map.containsKey(course)){//之前记录没有这课
+                    map.put(course,grade);
+                }else if(grade == null){  // 未设置成绩，必然最新
                     map.put(course, null);
-                }//else if(grade.when())
+                }else if(mark >= 60){
+                    map.put(course,grade);
+                }else if(grade.equals(grade = PassOrFailGrade.PASS)){
+                    map.put(course,grade);
+                }else { //本条记录不及格
+                    Grade prev = map.get(course);
+//                    if(prev==null){   //有未设成绩的记录，prev最新
+//                        //map.put(course,grade);
+//                    }else
+                        if( prev.when(
+                            new Grade.Cases<Boolean>() {
+                                @Override
+                                public Boolean match(PassOrFailGrade self) {
 
+                                    return self.equals(PassOrFailGrade.FAIL);
+                                }
 
+                                @Override
+                                public Boolean match(HundredMarkGrade self) {
+
+                                    return self.mark < 60;
+                                }
+                            }
+                    )){// prev 不及格
+                        map.put(course,grade);
+                    }
+                }
             }
-
             rs.close();
             ps1.close();
             con.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return map;
     }
 
