@@ -23,21 +23,21 @@ public class myDepartmentService implements DepartmentService {
     @Override
     public int addDepartment(String name) {
         try {
-            Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            sql = "insert into department(dept_id, dept_name)\n" +
+           Connection  connection = SQLDataSource.getInstance().getSQLConnection();
+           sql = "insert into department(dept_id, dept_name)\n" +
                     "values (default, ?)\n" +
                     "on conflict do nothing\n" +
                     "returning dept_id;";
-            preparedStatement = connection.prepareStatement(sql);
+             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, name);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+             resultSet = preparedStatement.getResultSet();
             if (resultSet.next()) {
                 connection.close();
-                throw new IntegrityViolationException();
+                return resultSet.getInt(1);
             } else {
                 connection.close();
-                return resultSet.getInt(1);
+                throw new IntegrityViolationException();
             }
 //            sql = "insert into department(dept_name) values (?)";
 //            preparedStatement = connection.prepareStatement(sql);
