@@ -22,9 +22,17 @@ public class myStudentService implements StudentService {
         try {
             PreparedStatement prstAddStu;
             Connection con = SQLDataSource.getInstance().getSQLConnection();
-            String inSql = "insert into students (sid, first_name, last_name, major_id, enrolled_date) values ("+userId+","+firstName+","+lastName+","+majorId+",?) on conflict do nothing";
+//            String inSql = "insert into students (sid, first_name, last_name, major_id, enrolled_date) values ("+userId+","+firstName+","+lastName+","+majorId+",?) on conflict do nothing";
+            String inSql = "insert into students (sid, major_id, first_name, last_name,  enrolled_date) values (?,?,?,?,?) on conflict do nothing";
             prstAddStu = con.prepareStatement(inSql);
-            prstAddStu.setDate(1,enrolledDate);
+            //prstAddStu.setDate(1,enrolledDate);
+            prstAddStu.setInt(1,userId);
+            prstAddStu.setInt(2,majorId);
+            prstAddStu.setString(3,firstName);
+            prstAddStu.setString(4,lastName);
+            prstAddStu.setDate(5,enrolledDate);
+            
+
             prstAddStu.execute();// todo Batch?? if no return
             prstAddStu.close();
             con.close();
@@ -63,6 +71,7 @@ public class myStudentService implements StudentService {
 
     @Override
     public void dropCourse(int studentId, int sectionId) throws IllegalStateException {
+
         try {
             Connection conn =  SQLDataSource.getInstance().getSQLConnection();
 //            String searchSql = "select case  when course_state = 'SELECTED' then false else true  end as already_marked " +
@@ -79,6 +88,7 @@ public class myStudentService implements StudentService {
             stmt1.close();
             conn.close();
         } catch (SQLException e) {
+
             e.printStackTrace();
         }
     }
