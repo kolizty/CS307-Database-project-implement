@@ -17,25 +17,29 @@ import java.util.List;
 
 public class myDepartmentService implements DepartmentService {
     static String sql;
-    static PreparedStatement preparedStatement;
-    static ResultSet resultSet;
 
     @Override
     public int addDepartment(String name) {
+        int id = 0;
         try {
-           Connection  connection = SQLDataSource.getInstance().getSQLConnection();
-           sql = "insert into department(dept_id, dept_name)\n" +
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            sql = "insert into department(dept_id, dept_name)\n" +
                     "values (default, ?)\n" +
                     "on conflict do nothing\n" +
                     "returning dept_id;";
-             preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, name);
             preparedStatement.execute();
-             resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
+
             if (resultSet.next()) {
+                id = resultSet.getInt(1);
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
-                return resultSet.getInt(1);
             } else {
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
                 throw new IntegrityViolationException();
             }
@@ -49,13 +53,15 @@ public class myDepartmentService implements DepartmentService {
 //            preparedStatement = connection.prepareStatement(sql1);
 //            preparedStatement.setString(1, name);
 //            preparedStatement.execute();
-//            resultSet = preparedStatement.getResultSet();
+//            resultSet = preparedStatement.executeQuery();
 //            resultSet.next();
 //            connection.close();
 //            return resultSet.getInt(1);
         } catch (SQLException e) {
-            throw new IntegrityViolationException();
+            
         }
+        return id;
+
     }
 
     @Override
@@ -63,15 +69,16 @@ public class myDepartmentService implements DepartmentService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select major_id from majors where dept_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.execute();
             List<Integer> list = new ArrayList<>();
+            ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(resultSet.getInt(1));
             }
             //按majors中的major方法；删除major
-            myMajorService m1 = new myMajorService();
+
             for (int i = 0; i < list.size(); i++) {
                 int majorId = list.get(i);
                 ////删除majorId对应student_courses中的内容
@@ -112,9 +119,11 @@ public class myDepartmentService implements DepartmentService {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.execute();
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
-            throw new EntityNotFoundException();
+
         }
     }
 
@@ -125,15 +134,17 @@ public class myDepartmentService implements DepartmentService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select * from department;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
                 Department department = new Department();
                 department.id = resultSet.getInt(1);
                 department.name = resultSet.getString(2);
                 list.add(department);
             }
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
         } catch (Exception e) {
             throw new EntityNotFoundException();
@@ -147,16 +158,20 @@ public class myDepartmentService implements DepartmentService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select * from department where dept_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             if (resultSet.next()) {
                 department.id = resultSet.getInt(1);
                 department.name = resultSet.getString(2);
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
                 return department;
             } else {
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
                 throw new EntityNotFoundException();
             }

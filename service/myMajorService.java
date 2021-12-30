@@ -17,8 +17,6 @@ import java.util.List;
 public class myMajorService implements MajorService {
 
     static String sql;
-    static PreparedStatement preparedStatement;
-    static ResultSet resultSet;
 
     @Override
     public int addMajor(String name, int departmentId) {
@@ -28,14 +26,17 @@ public class myMajorService implements MajorService {
                     "values (default, ?, ?)\n" +
                     "on conflict do nothing\n" +
                     "returning major_id;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.setString(2, name);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             resultSet.next();
+            int id = resultSet.getInt(1);
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
-            return resultSet.getInt(1);
+            return id;
 //            sql = "insert into majors(major_name,dept_id)values (?,?);";
 //            preparedStatement = connection.prepareStatement(sql);
 //            preparedStatement.setString(1, name);
@@ -64,7 +65,7 @@ public class myMajorService implements MajorService {
             String sql_delete_student_courses = "delete\n" +
                     "from student_courses\n" +
                     "where sid in (select sid from students where major_id = (?));";
-            preparedStatement = connection.prepareStatement(sql_delete_student_courses);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_student_courses);
             preparedStatement.setInt(1, majorId);
             preparedStatement.execute();
 
@@ -92,6 +93,7 @@ public class myMajorService implements MajorService {
             preparedStatement.setInt(1, majorId);
             preparedStatement.execute();
 
+            preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
             throw new EntityNotFoundException();
@@ -105,9 +107,9 @@ public class myMajorService implements MajorService {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select major_id,major_name,d.dept_id,dept_name\n" +
                     "from majors join department d on d.dept_id = majors.dept_id;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
                 Major major = new Major();
                 major.id = resultSet.getInt(1);
@@ -116,6 +118,8 @@ public class myMajorService implements MajorService {
                 major.department.name = resultSet.getString(4);
                 list.add(major);
             }
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
             return list;
         } catch (Exception e) {
@@ -131,19 +135,23 @@ public class myMajorService implements MajorService {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select major_id,major_name,d.dept_id,dept_name\n" +
                     "from majors join department d on d.dept_id = majors.dept_id where major_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, majorId);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             if (resultSet.next()) {
                 major.id = resultSet.getInt(1);
                 major.name = resultSet.getString(2);
                 department.id = resultSet.getInt(3);
                 department.name = resultSet.getString(4);
                 major.department = department;
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
                 return major;
             } else {
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
                 throw new EntityNotFoundException();
             }
@@ -157,10 +165,11 @@ public class myMajorService implements MajorService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "insert into major_compulsory(major_id, course_id)values (?,?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, majorId);
             preparedStatement.setString(2, courseId);
             preparedStatement.execute();
+            preparedStatement.close();
             connection.close();
         } catch (Exception e) {
             throw new IntegrityViolationException();
@@ -172,10 +181,11 @@ public class myMajorService implements MajorService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "insert into major_elective(major_id, course_id)values (?,?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, majorId);
             preparedStatement.setString(2, courseId);
             preparedStatement.execute();
+            preparedStatement.close();
             connection.close();
         } catch (Exception e) {
             throw new IntegrityViolationException();

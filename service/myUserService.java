@@ -13,28 +13,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class myUserService implements UserService {
-
 //    static String sql1_delete_instructor = "delete from instructors where instructor_id=(?);";
 //    static String sql2_delete_student = "delete from students where sid=(?);";
 //    static String sql3_select_all_student = "select sid,first_name,last_name from students;";
 //    static String sql4_select_all_instructor = "select * from instructors;";
 //    static String sql5_select_student = "select sid,first_name,last_name from students where sid=(?);";
 //    static String sql6_select_instructor = "select * from instructors where instructor_id=(?);";
-
     static String sql;
-    static PreparedStatement preparedStatement;
-    static ResultSet resultSet;
-
+//    static PreparedStatement preparedStatement;
+//    static ResultSet resultSet;
     @Override
     public void removeUser(int userId) {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             //判断是老师还是学生
             sql = "delete from course_section_class where instructor_id=(?) returning class_id;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, userId);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             if (resultSet.next()) {//如果有返回，代表userId是老师,只要再把老师删了;
                 sql = "delete from instructors where instructor_id=(?);";
                 preparedStatement = connection.prepareStatement(sql);
@@ -74,9 +71,9 @@ public class myUserService implements UserService {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             //加学生
             sql = "select sid,first_name,last_name from students;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
                 User user = new User() {
                     @Override
@@ -153,16 +150,16 @@ public class myUserService implements UserService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select * from instructors where instructor_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, userId);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             if (resultSet.next()) {
                 user.id = resultSet.getInt(1);
                 //判断中英文名
                 String firstName = resultSet.getString(2).trim();
                 String lastName = resultSet.getString(3).trim();
-                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z')&&
+                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z') &&
                         (lastName.charAt(0) >= 'A' && lastName.charAt(0) <= 'z')) {
                     //英文名
                     user.fullName = resultSet.getString(2) + " " + resultSet.getString(3);

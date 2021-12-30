@@ -13,8 +13,8 @@ import java.util.List;
 public class mySemesterService implements SemesterService {
 
     static String sql;
-    static PreparedStatement preparedStatement;
-    static ResultSet resultSet;
+//    static PreparedStatement preparedStatement;
+//    static ResultSet resultSet;
 
     @Override
     public int addSemester(String name, Date begin, Date end) {
@@ -27,14 +27,17 @@ public class mySemesterService implements SemesterService {
                         "values (default, ?, ?, ?)\n" +
                         "on conflict do nothing\n" +
                         "returning semester_id;";
-                preparedStatement = connection.prepareStatement(sql);
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setString(1, name);
                 preparedStatement.setDate(2, begin);
                 preparedStatement.setDate(3, end);
                 preparedStatement.execute();
-                resultSet = preparedStatement.getResultSet();
+                ResultSet resultSet = preparedStatement.getResultSet();
+                int id = resultSet.getInt(1);
+                resultSet.close();
+                preparedStatement.close();
                 connection.close();
-                return resultSet.getInt(1);
+                return id;
             }
 //            preparedStatement = connection.prepareStatement(sql_addSemester);
 //            preparedStatement.setString(1, name);
@@ -63,7 +66,7 @@ public class mySemesterService implements SemesterService {
             String sql_delete_class = "delete\n" +
                     "from course_section_class\n" +
                     "where section_id in (select section_id from course_section where semester_id=(?));";
-            preparedStatement = connection.prepareStatement(sql_delete_class);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_class);
             preparedStatement.setInt(1, semesterId);
             preparedStatement.execute();
 
@@ -87,6 +90,9 @@ public class mySemesterService implements SemesterService {
             preparedStatement.setInt(1, semesterId);
             preparedStatement.execute();
 
+            preparedStatement.close();
+            connection.close();
+
         } catch (SQLException e) {
             throw new EntityNotFoundException();
         }
@@ -98,9 +104,9 @@ public class mySemesterService implements SemesterService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select * from semester;";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
                 Semester semester = new Semester();
                 semester.id = resultSet.getInt(1);
@@ -109,6 +115,8 @@ public class mySemesterService implements SemesterService {
                 semester.end = resultSet.getDate(4);
                 list.add(semester);
             }
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
             return list;
         } catch (Exception e) {
@@ -122,15 +130,18 @@ public class mySemesterService implements SemesterService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             String sql = "select * from semester where semester_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, semesterId);
             preparedStatement.execute();
-            resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             resultSet.next();
             semester.id = resultSet.getInt(1);
             semester.name = resultSet.getString(2);
             semester.begin = resultSet.getDate(3);
             semester.end = resultSet.getDate(4);
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
             return semester;
         } catch (Exception e) {
             throw new EntityNotFoundException();
