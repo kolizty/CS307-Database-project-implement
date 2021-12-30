@@ -70,21 +70,14 @@ public class myStudentService implements StudentService {
     @Override
     public void dropCourse(int studentId, int sectionId) throws IllegalStateException {
 
-        try {
-            Connection conn =  SQLDataSource.getInstance().getSQLConnection();
-            String searchSql = "select * from drop_course(?,?)";
-            PreparedStatement stmt1 = conn.prepareStatement(searchSql);
+        try (
+                Connection conn =  SQLDataSource.getInstance().getSQLConnection();
+                PreparedStatement stmt1 = conn.prepareStatement("select * from drop_course(?,?)");
+
+                ){
             stmt1.setInt(1,studentId);
             stmt1.setInt(2,sectionId);
-
             stmt1.execute();
-//            ResultSet rs = stmt1.executeQuery();
-//            if(rs.next()) {
-//                if(rs.getBoolean("throw")){
-//                    throw new IllegalStateException();
-//                }
-//            }
-//            rs.close();
             stmt1.close();
             conn.close();
         } catch (SQLException e) {
@@ -115,7 +108,6 @@ public class myStudentService implements StudentService {
                 prst.setString(3,"MARKED");
                 prst.setShort(4,((HundredMarkGrade)grade).mark);
             }
-
             prst.execute();
             prst.close();
             con.close();
