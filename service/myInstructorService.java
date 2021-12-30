@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class myInstructorService implements InstructorService {
-    static Connection connection;
     static String sql;
     static PreparedStatement preparedStatement;
     static ResultSet resultSet;
@@ -22,13 +21,14 @@ public class myInstructorService implements InstructorService {
     @Override
     public void addInstructor(int userId, String firstName, String lastName) {
         try {
-            connection = SQLDataSource.getInstance().getSQLConnection();
-            sql = "insert into instructors(instructor_id, first_name, last_name) values (?,?,?);";
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            sql = "insert into instructors(instructor_id, first_name, last_name) values (?,?,?) on conflict do nothing;";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, userId);
             preparedStatement.setString(2, firstName);
             preparedStatement.setString(3, lastName);
             preparedStatement.execute();
+            connection.close();
         } catch (Exception e) {
             throw new IntegrityViolationException();
         }
@@ -38,7 +38,7 @@ public class myInstructorService implements InstructorService {
     public List<CourseSection> getInstructedCourseSections(int instructorId, int semesterId) {
         List<CourseSection> list = new ArrayList<>();
         try {
-            connection = SQLDataSource.getInstance().getSQLConnection();
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "select csc.section_id, section_name, total_capacity, left_capacity\n" +
                     "from course_section\n" +
                     "         join course_section_class csc on course_section.section_id = csc.section_id\n" +
@@ -55,9 +55,10 @@ public class myInstructorService implements InstructorService {
                 courseSection.leftCapacity = resultSet.getInt(4);
                 list.add(courseSection);
             }
+            connection.close();
+            return list;
         } catch (Exception e) {
             throw new EntityNotFoundException();
         }
-        return list;
     }
 }
