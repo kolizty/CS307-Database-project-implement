@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class myStudentsService implements StudentService {
+public class myStudentService implements StudentService {
 
     @Override
     public void addStudent(int userId, int majorId, String firstName, String lastName, Date enrolledDate) {
@@ -85,7 +85,7 @@ public class myStudentsService implements StudentService {
 
     @Override
     public void addEnrolledCourseWithGrade(int studentId, int sectionId, @Nullable Grade grade) {
-        String sql = ""
+        String sql = "";
 
     }
 
@@ -145,7 +145,7 @@ public class myStudentsService implements StudentService {
                 }
                 if(grade == null){// 未设置成绩，必然最新
                     map.put(course, null);
-                }else if(grade.when())
+                }//else if(grade.when())
 
 
             }
