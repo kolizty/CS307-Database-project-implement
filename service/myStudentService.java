@@ -60,6 +60,7 @@ public class myStudentService implements StudentService {
 
     @Override
     public EnrollResult enrollCourse(int studentId, int sectionId) {
+        //别忘了容量减少
 
         return null;
     }
@@ -71,10 +72,11 @@ public class myStudentService implements StudentService {
 
         try {
             Connection conn =  SQLDataSource.getInstance().getSQLConnection();
-//            String searchSql = "select case  when course_state = 'SELECTED' then false else true  end as already_marked " +
-//                    "from student_courses where sid = " +studentId+ " and section_id = "+sectionId;
-            String searchSql = "select * from drop_course("+studentId+ ","+sectionId+ ")";
+            String searchSql = "select * from drop_course(?,?)";
             PreparedStatement stmt1 = conn.prepareStatement(searchSql);
+            stmt1.setInt(1,studentId);
+            stmt1.setInt(2,sectionId);
+
             stmt1.execute();
 //            ResultSet rs = stmt1.executeQuery();
 //            if(rs.next()) {
@@ -93,7 +95,33 @@ public class myStudentService implements StudentService {
 
     @Override
     public void addEnrolledCourseWithGrade(int studentId, int sectionId, @Nullable Grade grade) {
-        String sql = "";
+        String sql = "insert into student_courses (sid, section_id, course_state, mark) VALUES (?,?, cast(? as states) ,?) on conflict do nothing";
+        try {
+            PreparedStatement prst;
+            Connection con = SQLDataSource.getInstance().getSQLConnection();
+            prst = con.prepareStatement(sql);
+            prst.setInt(1,studentId);
+            prst.setInt(2,sectionId);
+            if(grade==null){
+                prst.setString(3,"SELECTED");
+                prst.setNull(4, Types.NULL);
+            }else if(grade.equals(PassOrFailGrade.FAIL)){
+                prst.setString(3,"FAILED");
+                prst.setNull(4, Types.NULL);
+            }else if(grade.equals(PassOrFailGrade.PASS)){
+                prst.setString(3,"PASSED");
+                prst.setNull(4, Types.NULL);
+            }else {
+                prst.setString(3,"MARKED");
+                prst.setShort(4,((HundredMarkGrade)grade).mark);
+            }
+
+            prst.execute();
+            prst.close();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -110,13 +138,19 @@ public class myStudentService implements StudentService {
             Connection con = SQLDataSource.getInstance().getSQLConnection();
             String sql = "select b.course_id,course_name,credit,class_hour,  case  when grading = 'PASS_OR_FAIL' then true " +
  " else false end as is_PF, cast(course_state as text) as course_state,  case  when mark is null then -1  else mark  end as mark " +
-    "from (select course_state,mark,course_id from (select * from student_courses where sid = "+studentId+")a join course_section se on a.section_id = se.section_id";
+    "from (select course_state,mark,course_id from (select * from student_courses where sid = ?)a join course_section se on a.section_id = se.section_id";
+
             if(semesterId!=null){
-                sql = sql + "where semester_id = "+semesterId;
+                sql = sql + "where semester_id = ?";
             }
             sql = sql + ") b join courses co on b.course_id = co.course_id";
             PreparedStatement ps1;
             ps1 = con.prepareStatement( sql );
+            ps1.setInt(1,studentId);
+            if(semesterId!=null){
+                ps1.setInt(2,semesterId);
+            }
+
             //todo “预”编译??
             ResultSet rs = ps1.executeQuery();
             while (rs.next()){
@@ -133,7 +167,7 @@ public class myStudentService implements StudentService {
                 short mark = rs.getShort("mark");
                 if(mark != -1){
                     grade = new HundredMarkGrade((short) mark);
-                }else {// mark ==-1(null)
+                }else {// mark == -1(null)
                     String courseState = rs.getString("course_state");
                     switch (courseState) {
                         case "SELECTED": //未判分
