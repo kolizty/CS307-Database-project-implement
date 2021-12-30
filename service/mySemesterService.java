@@ -21,7 +21,7 @@ public class mySemesterService implements SemesterService {
         int id = 0;
         try {
             if (begin.compareTo(end) > 0) {
- //               throw new IntegrityViolationException();
+                //               throw new IntegrityViolationException();
             } else {
                 Connection connection = SQLDataSource.getInstance().getSQLConnection();
                 sql = "insert into semester(semester_id, semester_name, begin_time, end_time)\n" +
@@ -134,8 +134,11 @@ public class mySemesterService implements SemesterService {
         } catch (Exception e) {
 //            throw new EntityNotFoundException();
         }
-        return list;
-
+        if (list.size() == 0) {
+            return List.of();
+        } else {
+            return list;
+        }
     }
 
     @Override

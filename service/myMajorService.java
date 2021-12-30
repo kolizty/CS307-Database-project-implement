@@ -137,7 +137,11 @@ public class myMajorService implements MajorService {
         } catch (Exception e) {
 //            throw new EntityNotFoundException();
         }
-        return list;
+        if (list.size() == 0) {
+            return List.of();
+        } else {
+            return list;
+        }
     }
 
     @Override

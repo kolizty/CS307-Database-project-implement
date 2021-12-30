@@ -133,9 +133,13 @@ public class myUserService implements UserService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return list;
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
+        }
+        if (list.size() == 0) {
+            return List.of();
+        } else {
+            return list;
         }
     }
 
@@ -195,9 +199,10 @@ public class myUserService implements UserService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return user;
         } catch (SQLException e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return user;
+
     }
 }

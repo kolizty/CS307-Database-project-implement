@@ -162,7 +162,11 @@ public class myDepartmentService implements DepartmentService {
         } catch (Exception e) {
 //            throw new EntityNotFoundException();
         }
-        return list;
+        if (list.size() == 0) {
+            return List.of();
+        } else {
+            return list;
+        }
     }
 
     @Override

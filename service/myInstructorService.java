@@ -23,7 +23,7 @@ public class myInstructorService implements InstructorService {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "insert into instructors(instructor_id, first_name, last_name) values (?,?,?) on conflict do nothing;";
-           PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, userId);
             preparedStatement.setString(2, firstName);
             preparedStatement.setString(3, lastName);
@@ -45,9 +45,9 @@ public class myInstructorService implements InstructorService {
                     "         join course_section_class csc on course_section.section_id = csc.section_id\n" +
                     "where instructor_id = (?)\n" +
                     "  and semester_id = (?);";
-           PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.execute();
-           ResultSet resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
                 CourseSection courseSection = new CourseSection();
                 courseSection.id = resultSet.getInt(1);
@@ -62,6 +62,10 @@ public class myInstructorService implements InstructorService {
         } catch (Exception e) {
 //            throw new EntityNotFoundException();
         }
-        return list;
+        if (list.size() == 0) {
+            return List.of();
+        } else {
+            return list;
+        }
     }
 }
