@@ -31,7 +31,7 @@ public class myInstructorService implements InstructorService {
             preparedStatement.close();
             connection.close();
         } catch (Exception e) {
-            throw new IntegrityViolationException();
+//            throw new IntegrityViolationException();
         }
     }
 
@@ -59,9 +59,9 @@ public class myInstructorService implements InstructorService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return list;
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return list;
     }
 }

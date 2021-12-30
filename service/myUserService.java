@@ -13,14 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class myUserService implements UserService {
-//    static String sql1_delete_instructor = "delete from instructors where instructor_id=(?);";
+    //    static String sql1_delete_instructor = "delete from instructors where instructor_id=(?);";
 //    static String sql2_delete_student = "delete from students where sid=(?);";
 //    static String sql3_select_all_student = "select sid,first_name,last_name from students;";
 //    static String sql4_select_all_instructor = "select * from instructors;";
 //    static String sql5_select_student = "select sid,first_name,last_name from students where sid=(?);";
 //    static String sql6_select_instructor = "select * from instructors where instructor_id=(?);";
     static String sql;
-//    static PreparedStatement preparedStatement;
+
+    //    static PreparedStatement preparedStatement;
 //    static ResultSet resultSet;
     @Override
     public void removeUser(int userId) {
@@ -37,6 +38,7 @@ public class myUserService implements UserService {
                 preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setInt(1, userId);
                 preparedStatement.execute();
+                preparedStatement.close();
                 connection.close();
             } else {//如果没有返回,代表不是老师，是学生,则删除student_courses和students表中相关内容
                 //删除student_courses表中相关内容
@@ -49,6 +51,7 @@ public class myUserService implements UserService {
                 preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setInt(1, userId);
                 preparedStatement.execute();
+                preparedStatement.close();
                 connection.close();
             }
 //            preparedStatement1 = connection.prepareStatement(sql1_delete_instructor);
@@ -60,7 +63,7 @@ public class myUserService implements UserService {
 //            preparedStatement2.execute();
 //            connection.close();
         } catch (SQLException e) {
-            throw new EntityNotFoundException();
+
         }
     }
 
@@ -127,6 +130,8 @@ public class myUserService implements UserService {
                 }
                 list.add(user);
             }
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
             return list;
         } catch (Exception e) {
@@ -187,6 +192,8 @@ public class myUserService implements UserService {
                     user.fullName = resultSet.getString(2) + resultSet.getString(3);
                 }
             }
+            resultSet.close();
+            preparedStatement.close();
             connection.close();
             return user;
         } catch (SQLException e) {

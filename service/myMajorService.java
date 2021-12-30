@@ -20,6 +20,7 @@ public class myMajorService implements MajorService {
 
     @Override
     public int addMajor(String name, int departmentId) {
+        int id = 0;
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
             sql = "insert into majors(major_id, dept_id, major_name)\n" +
@@ -32,11 +33,10 @@ public class myMajorService implements MajorService {
             preparedStatement.execute();
             ResultSet resultSet = preparedStatement.getResultSet();
             resultSet.next();
-            int id = resultSet.getInt(1);
+            id = resultSet.getInt(1);
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return id;
 //            sql = "insert into majors(major_name,dept_id)values (?,?);";
 //            preparedStatement = connection.prepareStatement(sql);
 //            preparedStatement.setString(1, name);
@@ -52,52 +52,65 @@ public class myMajorService implements MajorService {
 //            resultSet.next();
 //            return resultSet.getInt(1);
         } catch (SQLException e) {
-            throw new IntegrityViolationException();
+//            throw new IntegrityViolationException();
         }
+        return id;
     }
 
     @Override
     public void removeMajor(int majorId) {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
-
-            //删除majorId对应student_courses中的内容
-            String sql_delete_student_courses = "delete\n" +
-                    "from student_courses\n" +
-                    "where sid in (select sid from students where major_id = (?));";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_student_courses);
-            preparedStatement.setInt(1, majorId);
-            preparedStatement.execute();
-
-            //删除majorId对应students中的内容
-            String sql_delete_students = "delete from students where major_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_students);
-            preparedStatement.setInt(1, majorId);
-            preparedStatement.execute();
-
-            //删除majorId对应major_compulsory中的内容
-            String sql_delete_major_compulsory = "delete from major_compulsory where major_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_major_compulsory);
-            preparedStatement.setInt(1, majorId);
-            preparedStatement.execute();
-
-            //删除majorId对应major_elective表中的内容
-            String sql_delete_major_elective = "delete from major_elective where major_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_major_elective);
-            preparedStatement.setInt(1, majorId);
-            preparedStatement.execute();
-
-            //删除majorId对应majors表中的内容
             String sql_delete_majors = "delete from majors where major_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_majors);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_majors);
             preparedStatement.setInt(1, majorId);
             preparedStatement.execute();
 
             preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
-            throw new EntityNotFoundException();
+
         }
+//        try {
+//            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+//
+//            //删除majorId对应student_courses中的内容
+//            String sql_delete_student_courses = "delete\n" +
+//                    "from student_courses\n" +
+//                    "where sid in (select sid from students where major_id = (?));";
+//            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_student_courses);
+//            preparedStatement.setInt(1, majorId);
+//            preparedStatement.execute();
+//
+//            //删除majorId对应students中的内容
+//            String sql_delete_students = "delete from students where major_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_students);
+//            preparedStatement.setInt(1, majorId);
+//            preparedStatement.execute();
+//
+//            //删除majorId对应major_compulsory中的内容
+//            String sql_delete_major_compulsory = "delete from major_compulsory where major_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_major_compulsory);
+//            preparedStatement.setInt(1, majorId);
+//            preparedStatement.execute();
+//
+//            //删除majorId对应major_elective表中的内容
+//            String sql_delete_major_elective = "delete from major_elective where major_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_major_elective);
+//            preparedStatement.setInt(1, majorId);
+//            preparedStatement.execute();
+//
+//            //删除majorId对应majors表中的内容
+//            String sql_delete_majors = "delete from majors where major_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_majors);
+//            preparedStatement.setInt(1, majorId);
+//            preparedStatement.execute();
+//
+//            preparedStatement.close();
+//            connection.close();
+//        } catch (SQLException e) {
+////            throw new EntityNotFoundException();
+//        }
     }
 
     @Override
@@ -121,10 +134,10 @@ public class myMajorService implements MajorService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return list;
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return list;
     }
 
     @Override
@@ -148,16 +161,16 @@ public class myMajorService implements MajorService {
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                return major;
             } else {
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                throw new EntityNotFoundException();
+//              throw new EntityNotFoundException();
             }
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return major;
     }
 
     @Override
@@ -172,7 +185,7 @@ public class myMajorService implements MajorService {
             preparedStatement.close();
             connection.close();
         } catch (Exception e) {
-            throw new IntegrityViolationException();
+//            throw new IntegrityViolationException();
         }
     }
 
@@ -188,7 +201,7 @@ public class myMajorService implements MajorService {
             preparedStatement.close();
             connection.close();
         } catch (Exception e) {
-            throw new IntegrityViolationException();
+//            throw new IntegrityViolationException();
         }
     }
 }

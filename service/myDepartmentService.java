@@ -41,7 +41,7 @@ public class myDepartmentService implements DepartmentService {
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                throw new IntegrityViolationException();
+                //               throw new IntegrityViolationException();
             }
 //            sql = "insert into department(dept_name) values (?)";
 //            preparedStatement = connection.prepareStatement(sql);
@@ -58,7 +58,7 @@ public class myDepartmentService implements DepartmentService {
 //            connection.close();
 //            return resultSet.getInt(1);
         } catch (SQLException e) {
-            
+
         }
         return id;
 
@@ -68,63 +68,76 @@ public class myDepartmentService implements DepartmentService {
     public void removeDepartment(int departmentId) {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            sql = "select major_id from majors where dept_id=(?);";
+            sql = "delete from department where dept_id=(?);";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, departmentId);
             preparedStatement.execute();
-            List<Integer> list = new ArrayList<>();
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                list.add(resultSet.getInt(1));
-            }
-            //按majors中的major方法；删除major
-
-            for (int i = 0; i < list.size(); i++) {
-                int majorId = list.get(i);
-                ////删除majorId对应student_courses中的内容
-                String sql_delete_student_courses = "delete\n" +
-                        "from student_courses\n" +
-                        "where sid in (select sid from students where major_id = (?));";
-                preparedStatement = connection.prepareStatement(sql_delete_student_courses);
-                preparedStatement.setInt(1, majorId);
-                preparedStatement.execute();
-
-                //删除majorId对应students中的内容
-                String sql_delete_students = "delete from students where major_id=(?);";
-                preparedStatement = connection.prepareStatement(sql_delete_students);
-                preparedStatement.setInt(1, majorId);
-                preparedStatement.execute();
-
-                //删除majorId对应major_compulsory中的内容
-                String sql_delete_major_compulsory = "delete from major_compulsory where major_id=(?);";
-                preparedStatement = connection.prepareStatement(sql_delete_major_compulsory);
-                preparedStatement.setInt(1, majorId);
-                preparedStatement.execute();
-
-                //删除majorId对应major_elective表中的内容
-                String sql_delete_major_elective = "delete from major_elective where major_id=(?);";
-                preparedStatement = connection.prepareStatement(sql_delete_major_elective);
-                preparedStatement.setInt(1, majorId);
-                preparedStatement.execute();
-
-                //删除majorId对应majors表中的内容
-                String sql_delete_majors = "delete from majors where major_id=(?);";
-                preparedStatement = connection.prepareStatement(sql_delete_majors);
-                preparedStatement.setInt(1, majorId);
-                preparedStatement.execute();
-
-            }
-            //删除department
-            sql = "delete from department where dept_id=(?);";
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, departmentId);
-            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
             resultSet.close();
             preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
 
         }
+//        try {
+//            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+//            sql = "select major_id from majors where dept_id=(?);";
+//            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+//            preparedStatement.setInt(1, departmentId);
+//            preparedStatement.execute();
+//            List<Integer> list = new ArrayList<>();
+//            ResultSet resultSet = preparedStatement.executeQuery();
+//            while (resultSet.next()) {
+//                list.add(resultSet.getInt(1));
+//            }
+//            //按majors中的major方法；删除major
+//
+//            for (int i = 0; i < list.size(); i++) {
+//                int majorId = list.get(i);
+//                ////删除majorId对应student_courses中的内容
+//                String sql_delete_student_courses = "delete\n" +
+//                        "from student_courses\n" +
+//                        "where sid in (select sid from students where major_id = (?));";
+//                preparedStatement = connection.prepareStatement(sql_delete_student_courses);
+//                preparedStatement.setInt(1, majorId);
+//                preparedStatement.execute();
+//
+//                //删除majorId对应students中的内容
+//                String sql_delete_students = "delete from students where major_id=(?);";
+//                preparedStatement = connection.prepareStatement(sql_delete_students);
+//                preparedStatement.setInt(1, majorId);
+//                preparedStatement.execute();
+//
+//                //删除majorId对应major_compulsory中的内容
+//                String sql_delete_major_compulsory = "delete from major_compulsory where major_id=(?);";
+//                preparedStatement = connection.prepareStatement(sql_delete_major_compulsory);
+//                preparedStatement.setInt(1, majorId);
+//                preparedStatement.execute();
+//
+//                //删除majorId对应major_elective表中的内容
+//                String sql_delete_major_elective = "delete from major_elective where major_id=(?);";
+//                preparedStatement = connection.prepareStatement(sql_delete_major_elective);
+//                preparedStatement.setInt(1, majorId);
+//                preparedStatement.execute();
+//
+//                //删除majorId对应majors表中的内容
+//                String sql_delete_majors = "delete from majors where major_id=(?);";
+//                preparedStatement = connection.prepareStatement(sql_delete_majors);
+//                preparedStatement.setInt(1, majorId);
+//                preparedStatement.execute();
+//
+//            }
+//            //删除department
+//            sql = "delete from department where dept_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql);
+//            preparedStatement.setInt(1, departmentId);
+//            preparedStatement.execute();
+//            resultSet.close();
+//            preparedStatement.close();
+//            connection.close();
+//        } catch (SQLException e) {
+//
+//        }
     }
 
 
@@ -147,7 +160,7 @@ public class myDepartmentService implements DepartmentService {
             preparedStatement.close();
             connection.close();
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
         return list;
     }
@@ -168,15 +181,15 @@ public class myDepartmentService implements DepartmentService {
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                return department;
             } else {
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                throw new EntityNotFoundException();
+                //               throw new EntityNotFoundException();
             }
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+            //           throw new EntityNotFoundException();
         }
+        return department;
     }
 }

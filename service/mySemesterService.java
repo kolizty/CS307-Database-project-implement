@@ -18,9 +18,10 @@ public class mySemesterService implements SemesterService {
 
     @Override
     public int addSemester(String name, Date begin, Date end) {
+        int id = 0;
         try {
             if (begin.compareTo(end) > 0) {
-                throw new IntegrityViolationException();
+ //               throw new IntegrityViolationException();
             } else {
                 Connection connection = SQLDataSource.getInstance().getSQLConnection();
                 sql = "insert into semester(semester_id, semester_name, begin_time, end_time)\n" +
@@ -33,11 +34,11 @@ public class mySemesterService implements SemesterService {
                 preparedStatement.setDate(3, end);
                 preparedStatement.execute();
                 ResultSet resultSet = preparedStatement.getResultSet();
-                int id = resultSet.getInt(1);
+                id = resultSet.getInt(1);
                 resultSet.close();
                 preparedStatement.close();
                 connection.close();
-                return id;
+
             }
 //            preparedStatement = connection.prepareStatement(sql_addSemester);
 //            preparedStatement.setString(1, name);
@@ -54,48 +55,60 @@ public class mySemesterService implements SemesterService {
 //            resultSet.next();
 //            return resultSet.getInt(1);
         } catch (SQLException e) {
-            throw new IntegrityViolationException();
+            //           throw new IntegrityViolationException();
         }
+        return id;
     }
 
     @Override
     public void removeSemester(int semesterId) {
         try {
             Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            //删除section_id对应course_section_class中的内容
-            String sql_delete_class = "delete\n" +
-                    "from course_section_class\n" +
-                    "where section_id in (select section_id from course_section where semester_id=(?));";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_class);
-            preparedStatement.setInt(1, semesterId);
-            preparedStatement.execute();
-
-            //删除section_id对应student_courses中的内容
-            String sql_delete_student_courses = "delete\n" +
-                    "from student_courses\n" +
-                    "where section_id in (select section_id from course_section where semester_id = (?));";
-            preparedStatement = connection.prepareStatement(sql_delete_student_courses);
-            preparedStatement.setInt(1, semesterId);
-            preparedStatement.execute();
-
-            //删除semesterId对应course_section中的内容
-            String sql_delete_course_section = "delete from course_section where semester_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_course_section);
-            preparedStatement.setInt(1, semesterId);
-            preparedStatement.execute();
-
-            //删除semesterId对应semester表中的内容
             String sql_delete_semester = "delete from semester where semester_id=(?);";
-            preparedStatement = connection.prepareStatement(sql_delete_semester);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_semester);
             preparedStatement.setInt(1, semesterId);
             preparedStatement.execute();
-
             preparedStatement.close();
             connection.close();
+        } catch (Exception e) {
 
-        } catch (SQLException e) {
-            throw new EntityNotFoundException();
         }
+//        try {
+//            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+//            //删除section_id对应course_section_class中的内容
+//            String sql_delete_class = "delete\n" +
+//                    "from course_section_class\n" +
+//                    "where section_id in (select section_id from course_section where semester_id=(?));";
+//            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_class);
+//            preparedStatement.setInt(1, semesterId);
+//            preparedStatement.execute();
+//
+//            //删除section_id对应student_courses中的内容
+//            String sql_delete_student_courses = "delete\n" +
+//                    "from student_courses\n" +
+//                    "where section_id in (select section_id from course_section where semester_id = (?));";
+//            preparedStatement = connection.prepareStatement(sql_delete_student_courses);
+//            preparedStatement.setInt(1, semesterId);
+//            preparedStatement.execute();
+//
+//            //删除semesterId对应course_section中的内容
+//            String sql_delete_course_section = "delete from course_section where semester_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_course_section);
+//            preparedStatement.setInt(1, semesterId);
+//            preparedStatement.execute();
+//
+//            //删除semesterId对应semester表中的内容
+//            String sql_delete_semester = "delete from semester where semester_id=(?);";
+//            preparedStatement = connection.prepareStatement(sql_delete_semester);
+//            preparedStatement.setInt(1, semesterId);
+//            preparedStatement.execute();
+//
+//            preparedStatement.close();
+//            connection.close();
+//
+//        } catch (SQLException e) {
+//            throw new EntityNotFoundException();
+//        }
     }
 
     @Override
@@ -118,10 +131,11 @@ public class mySemesterService implements SemesterService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return list;
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return list;
+
     }
 
     @Override
@@ -142,9 +156,9 @@ public class mySemesterService implements SemesterService {
             resultSet.close();
             preparedStatement.close();
             connection.close();
-            return semester;
         } catch (Exception e) {
-            throw new EntityNotFoundException();
+//            throw new EntityNotFoundException();
         }
+        return semester;
     }
 }
