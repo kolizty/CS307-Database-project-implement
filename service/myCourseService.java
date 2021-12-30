@@ -5,6 +5,7 @@ import cn.edu.sustech.cs307.dto.*;
 import cn.edu.sustech.cs307.dto.prerequisite.Prerequisite;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
+import cn.edu.sustech.cs307.service.CourseService;
 
 import javax.annotation.Nullable;
 import java.sql.*;
@@ -14,7 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class myCourseService extends cn.edu.sustech.cs307.service.CourseService {
+public class myCourseService implements CourseService {
     @Override
     public void addCourse(String courseId, String courseName, int credit, int classHour, Course.CourseGrading grading, @Nullable Prerequisite prerequisite) {
         if (courseId == null)
@@ -31,15 +32,17 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
             stmt1.setString(5, grading.toString());
             stmt1.execute();
             stmt2.setString(1, courseId);
-            if (prerequisite==null)
-                stmt2.setString(2,null);
-            else {
+            //if (prerequisite == null)
+                stmt2.setString(2, null);
+            //else {
 
-            }
+            //}
 
-                //todo: insert prerequisites
+            //todo: insert prerequisites
             stmt2.execute();
-
+            stmt1.close();
+            stmt2.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -65,6 +68,9 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
             while (rs.next()) {
                 id = rs.getInt(1);
             }
+            rs.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -95,6 +101,9 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
             while (rs.next()) {
                 id = rs.getInt(1);
             }
+            rs.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -105,34 +114,38 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
     public void removeCourse(String courseId) {
         if (courseId == null)
             throw new IntegrityViolationException("courseId is not null");
-        ResultSet rs_course, rs_section;
+//        ResultSet rs_course, rs_section;
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt0 = connection.prepareStatement("select * from courses where course_id=?");
-             PreparedStatement stmt1 = connection.prepareStatement("select section_id from course_section where course_id=?");
-             PreparedStatement stmt2 = connection.prepareStatement("delete from course_section_class where section_id=?");
-             PreparedStatement stmt3 = connection.prepareStatement("delete from student_courses where section_id=?");
-             PreparedStatement stmt4 = connection.prepareStatement("delete from course_section where section_id=?");
-             PreparedStatement stmt5 = connection.prepareStatement("delete from major_compulsory where course_id=?");
+//             PreparedStatement stmt0 = connection.prepareStatement("select * from courses where course_id=?");
+//             PreparedStatement stmt1 = connection.prepareStatement("select section_id from course_section where course_id=?");
+//             PreparedStatement stmt2 = connection.prepareStatement("delete from course_section_class where section_id=?");
+//             PreparedStatement stmt3 = connection.prepareStatement("delete from student_courses where section_id=?");
+//             PreparedStatement stmt4 = connection.prepareStatement("delete from course_section where section_id=?");
+//             PreparedStatement stmt5 = connection.prepareStatement("delete from major_compulsory where course_id=?");
              PreparedStatement stmt = connection.prepareStatement("delete from courses where course_id=?")) {
-            stmt0.setString(1, courseId);
-            rs_course = stmt0.executeQuery();
-            if (!rs_course.next())
-                throw new EntityNotFoundException("courseId not found");
-            stmt1.setString(1, courseId);
-            rs_section = stmt1.executeQuery();
-            while (rs_section.next()) {
-                int sectionId = rs_section.getInt(1);
-                stmt2.setInt(1, sectionId);
-                stmt3.setInt(1, sectionId);
-                stmt4.setInt(1, sectionId);
-                stmt2.execute();
-                stmt3.execute();
-                stmt4.execute();
-            }
-            stmt5.setString(1, courseId);
-            stmt5.execute();
+//            stmt0.setString(1, courseId);
+//            rs_course = stmt0.executeQuery();
+//            if (!rs_course.next())
+//                throw new EntityNotFoundException("courseId not found");
+//            stmt1.setString(1, courseId);
+//            rs_section = stmt1.executeQuery();
+//            while (rs_section.next()) {
+//                int sectionId = rs_section.getInt(1);
+//                stmt2.setInt(1, sectionId);
+//                stmt3.setInt(1, sectionId);
+//                stmt4.setInt(1, sectionId);
+//                stmt2.execute();
+//                stmt3.execute();
+//                stmt4.execute();
+//            }
+//            stmt5.setString(1, courseId);
+//            stmt5.execute();
             stmt.setString(1, courseId);
-            stmt.execute();
+            int cnt = stmt.executeUpdate();
+            if (cnt == 0)
+                throw new EntityNotFoundException("courseId not found");
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -140,22 +153,26 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
 
     @Override
     public void removeCourseSection(int sectionId) {
-        ResultSet rs;
+//        ResultSet rs;
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt0 = connection.prepareStatement("select * from courses where course_id=?");
-             PreparedStatement stmt1 = connection.prepareStatement("delete from course_section_class where section_id=?");
-             PreparedStatement stmt2 = connection.prepareStatement("delete from student_courses where section_id=?");
+//             PreparedStatement stmt0 = connection.prepareStatement("select * from courses where section_id=?");
+//             PreparedStatement stmt1 = connection.prepareStatement("delete from course_section_class where section_id=?");
+//             PreparedStatement stmt2 = connection.prepareStatement("delete from student_courses where section_id=?");
              PreparedStatement stmt = connection.prepareStatement("delete from course_section where section_id=?")) {
-            stmt0.setInt(1, sectionId);
-            rs = stmt0.executeQuery();
-            if (!rs.next())
-                throw new EntityNotFoundException("sectionId not found");
-            stmt1.setInt(1, sectionId);
-            stmt2.setInt(1, sectionId);
-            stmt1.execute();
-            stmt2.execute();
+//            stmt0.setInt(1, sectionId);
+//            rs = stmt0.executeQuery();
+//            if (!rs.next())
+//                throw new EntityNotFoundException("sectionId not found");
+//            stmt1.setInt(1, sectionId);
+//            stmt2.setInt(1, sectionId);
+//            stmt1.execute();
+//            stmt2.execute();
             stmt.setInt(1, sectionId);
-            stmt.execute();
+            int cnt = stmt.executeUpdate();
+            if (cnt == 0)
+                throw new EntityNotFoundException("sectionId not found");
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -163,16 +180,20 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
 
     @Override
     public void removeCourseSectionClass(int classId) {
-        ResultSet rs;
+//        ResultSet rs;
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt0 = connection.prepareStatement("select * from course_section_class where course_id=?");
+//             PreparedStatement stmt0 = connection.prepareStatement("select * from course_section_class where class_id=?");
              PreparedStatement stmt = connection.prepareStatement("delete from course_section_class where class_id=?")) {
-            stmt0.setInt(1, classId);
-            rs = stmt0.executeQuery();
-            if (!rs.next())
-                throw new EntityNotFoundException("classId not found");
+//            stmt0.setInt(1, classId);
+//            rs = stmt0.executeQuery();
+//            if (!rs.next())
+//                throw new EntityNotFoundException("classId not found");
             stmt.setInt(1, classId);
-            stmt.execute();
+            int cnt = stmt.executeUpdate();
+            if (cnt == 0)
+                throw new EntityNotFoundException("classId not found");
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -199,9 +220,14 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
                 course.grading = grade;
                 courses.add(course);
             }
+            rs.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (courses.isEmpty())
+            return List.of();
         return courses;
     }
 
@@ -231,9 +257,14 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
                 section.leftCapacity = left;
                 courseSection.add(section);
             }
+            rs.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (courseSection.isEmpty())
+            return List.of();
         return courseSection;
     }
 
@@ -267,7 +298,12 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
                     course.classHour = hour;
                     course.grading = grade;
                 }
+                rs_course.close();
             }
+            rs_section.close();
+            stmt.close();
+            stmt1.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -280,9 +316,9 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
         List<CourseSectionClass> courseSectionClassList = new ArrayList<>();
         try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                 "select class_id,c.instructor_id,first_name,last_name,dayofweek," +
-                 "week_list,classstart,classend,location from course_section_class c join " +
-                 "instructors i on i.instructor_id = c.instructor_id where section_id=?")) {
+                     "select class_id,c.instructor_id,first_name,last_name,dayofweek," +
+                             "week_list,classstart,classend,location from course_section_class c join " +
+                             "instructors i on i.instructor_id = c.instructor_id where section_id=?")) {
             stmt.setInt(1, sectionId);
             rs = stmt.executeQuery();
             if (!rs.next())
@@ -291,37 +327,53 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
             while (rs.next()) {
                 int classId = rs.getInt(1);
                 int instructorId = rs.getInt(2);
-                String firstName=rs.getString(3);
-                String lastName=rs.getString(4);
+                String firstName = rs.getString(3);
+                String lastName = rs.getString(4);
                 DayOfWeek dayOfWeek = (DayOfWeek) rs.getObject(5);
-                String week=rs.getString(6);
-                Set<Short> weekList=new HashSet<Short>();
-                //todo: weekList
-                short begin=rs.getShort(7);
-                short end=rs.getShort(8);
-                String location=rs.getString(9);
-                Instructor instructor=new Instructor();
-                instructor.id=instructorId;
-                String fullName="";
-                String regex="^[a-zA-Z ]+$";
+                String week = rs.getString(6);
+                Set<Short> weekList = new HashSet<Short>();
+                if (week.charAt(1)=='1')
+                    if (week.charAt(3)=='2'){
+                        for (short i=1;i<=15;i++)
+                            weekList.add(i);
+                    } else{
+                        for (short i=1;i<=15;i+=2)
+                            weekList.add(i);
+                    }
+                else{
+                    for (short i=2;i<=14;i+=2)
+                        weekList.add(i);
+                }
+                short begin = rs.getShort(7);
+                short end = rs.getShort(8);
+                String location = rs.getString(9);
+                Instructor instructor = new Instructor();
+                instructor.id = instructorId;
+                String fullName = "";
+                String regex = "^[a-zA-Z ]+$";
                 if (firstName.matches(regex) && lastName.matches(regex))
-                    fullName=firstName+" "+lastName;
+                    fullName = firstName + " " + lastName;
                 else
-                    fullName=firstName+lastName;
-                instructor.fullName=fullName;
-                CourseSectionClass courseSectionClass=new CourseSectionClass();
-                courseSectionClass.id=classId;
-                courseSectionClass.instructor=instructor;
-                courseSectionClass.dayOfWeek=dayOfWeek;
-                courseSectionClass.weekList=weekList;
-                courseSectionClass.classBegin=begin;
-                courseSectionClass.classEnd=end;
-                courseSectionClass.location=location;
+                    fullName = firstName + lastName;
+                instructor.fullName = fullName;
+                CourseSectionClass courseSectionClass = new CourseSectionClass();
+                courseSectionClass.id = classId;
+                courseSectionClass.instructor = instructor;
+                courseSectionClass.dayOfWeek = dayOfWeek;
+                courseSectionClass.weekList = weekList;
+                courseSectionClass.classBegin = begin;
+                courseSectionClass.classEnd = end;
+                courseSectionClass.location = location;
                 courseSectionClassList.add(courseSectionClass);
             }
+            rs.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (courseSectionClassList.isEmpty())
+            return List.of();
         return courseSectionClassList;
     }
 
@@ -343,14 +395,19 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
                 rs_section = stmt1.executeQuery();
                 while (rs_section.next()) {
                     String name = rs_section.getString(1);
-                    int total=rs_section.getInt(2);
-                    int left=rs_section.getInt(3);
-                    courseSection.id=sectionId;
-                    courseSection.name=name;
-                    courseSection.totalCapacity=total;
-                    courseSection.leftCapacity=left;
+                    int total = rs_section.getInt(2);
+                    int left = rs_section.getInt(3);
+                    courseSection.id = sectionId;
+                    courseSection.name = name;
+                    courseSection.totalCapacity = total;
+                    courseSection.leftCapacity = left;
                 }
+                rs_section.close();
             }
+            rs_class.close();
+            stmt.close();
+            stmt1.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -359,6 +416,6 @@ public class myCourseService extends cn.edu.sustech.cs307.service.CourseService 
 
     @Override
     public List<Student> getEnrolledStudentsInSemester(String courseId, int semesterId) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }
