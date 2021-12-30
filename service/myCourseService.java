@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.*;
-import java.util.Date;
 
 public class myCourseService implements CourseService {
 //    public void addPrerequisite(String courseId, Prerequisite prerequisite, StringBuffer sql) {
@@ -19,25 +18,23 @@ public class myCourseService implements CourseService {
 
     @Override
     public void addCourse(String courseId, String courseName, int credit, int classHour, Course.CourseGrading grading, @Nullable Prerequisite prerequisite) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt1 = connection.prepareStatement(
-                     "insert into courses(course_id,course_name,credit,class_hour,grading)" + "values(?,?,?,?,?::grading_type)");
-             PreparedStatement stmt2 = connection.prepareStatement(
-                     "insert into course_prerequisites(course_id,prerequisite)" + "values(?,?)")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt1 = connection.prepareStatement(
+                    "insert into courses(course_id,course_name,credit,class_hour,grading)" + "values(?,?,?,?,?::grading_type)");
+            PreparedStatement stmt2 = connection.prepareStatement(
+                    "insert into course_prerequisites(course_id,pre_course_id,prerequisite)" + "values(?,?,?)");
             stmt1.setString(1, courseId);
             stmt1.setString(2, courseName);
             stmt1.setInt(3, credit);
             stmt1.setInt(4, classHour);
             stmt1.setString(5, grading.toString());
             stmt1.execute();
-            stmt2.setString(1, courseId);
-            if (prerequisite == null) {
-                stmt2.setString(2, null);
-                stmt2.execute();
-            } else {
-
-            }
-
+//            stmt2.setString(1, courseId);
+//            if (prerequisite != null) {
+//
+//                stmt2.execute();
+//            }
             //todo: insert prerequisites
             stmt1.close();
             stmt2.close();
@@ -50,10 +47,11 @@ public class myCourseService implements CourseService {
     @Override
     public int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity) {
         int id = 0;
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "insert into courseSection(course_id,semester_id,section_name,total_capacity,left_capacity)"
-                             + "values(?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "insert into course_section(course_id,semester_id,section_name,total_capacity,left_capacity)"
+                            + "values(?,?,?,?,?) ",Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, courseId);
             stmt.setInt(2, semesterId);
             stmt.setString(3, sectionName);
@@ -76,17 +74,18 @@ public class myCourseService implements CourseService {
     @Override
     public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList, short classStart, short classEnd, String location) {
         int id = 0;
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "insert into course_section_class(section_id,instructor_id,"
-                             + "dayofweek,weeklist,classstart,classend,location)"
-                             + "values(?,?,?::days_of_week,?,?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "insert into course_section_class(section_id,instructor_id,"
+                            + "dayofweek,weeklist,classstart,classend,location)"
+                            + "values(?,?,?::days_of_week,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, sectionId);
             stmt.setInt(2, instructorId);
             stmt.setString(3, dayOfWeek.toString());
             List<Short> list=new ArrayList<>();
             list.addAll(weekList);
-            Array weeklist = connection.createArrayOf("Short", new List[]{list});
+            Array weeklist = connection.createArrayOf("smallint", list.toArray());
             stmt.setArray(4, weeklist);
             stmt.setShort(5, classStart);
             stmt.setShort(6, classEnd);
@@ -107,9 +106,10 @@ public class myCourseService implements CourseService {
 
     @Override
     public void removeCourse(String courseId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "delete from courses where course_id=?")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "delete from courses where course_id=?");
             stmt.setString(1, courseId);
             stmt.execute();
             stmt.close();
@@ -121,10 +121,10 @@ public class myCourseService implements CourseService {
 
     @Override
     public void removeCourseSection(int sectionId) {
-//        ResultSet rs;
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "delete from course_section where section_id=?")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "delete from course_section where section_id=?");
             stmt.setInt(1, sectionId);
             stmt.execute();
             stmt.close();
@@ -136,9 +136,10 @@ public class myCourseService implements CourseService {
 
     @Override
     public void removeCourseSectionClass(int classId) {
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "delete from course_section_class where class_id=?")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "delete from course_section_class where class_id=?");
             stmt.setInt(1, classId);
             stmt.execute();
             stmt.close();
@@ -151,9 +152,10 @@ public class myCourseService implements CourseService {
     @Override
     public List<Course> getAllCourses() {
         List<Course> courses = new ArrayList<>();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select * from courses")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select * from courses");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 String id = rs.getString(1);
@@ -183,10 +185,11 @@ public class myCourseService implements CourseService {
     @Override
     public List<CourseSection> getCourseSectionsInSemester(String courseId, int semesterId) {
         List<CourseSection> courseSection = new ArrayList<>();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select section_id,section_name,total_capacity,left_capacity "
-                             + "from course_section where course_id=? and semester_id=?")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select section_id,section_name,total_capacity,left_capacity "
+                            + "from course_section where course_id=? and semester_id=?");
             stmt.setString(1, courseId);
             stmt.setInt(2, semesterId);
             ResultSet rs = stmt.executeQuery();
@@ -216,11 +219,12 @@ public class myCourseService implements CourseService {
     @Override
     public Course getCourseBySection(int sectionId) {
         Course course = new Course();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select s.course_id,course_name,credit,class_hour,grading from "
-                             + "(select course_id from course_section where section_id=?) s "
-                             + "join courses c on s.course_id=c.course_id")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select s.course_id,course_name,credit,class_hour,grading from "
+                            + "(select course_id from course_section where section_id=?) s "
+                            + "join courses c on s.course_id=c.course_id");
             stmt.setInt(1, sectionId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -247,11 +251,12 @@ public class myCourseService implements CourseService {
     @Override
     public List<CourseSectionClass> getCourseSectionClasses(int sectionId) {
         List<CourseSectionClass> courseSectionClassList = new ArrayList<>();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select class_id,c.instructor_id,first_name,last_name,dayofweek,"
-                             + "week_list,classstart,classend,location from course_section_class c join "
-                             + "instructors i on i.instructor_id = c.instructor_id where section_id=?")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select class_id,c.instructor_id,first_name,last_name,dayofweek,"
+                            + "week_list,classstart,classend,location from course_section_class c join "
+                            + "instructors i on i.instructor_id = c.instructor_id where section_id=?");
             stmt.setInt(1, sectionId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -298,11 +303,12 @@ public class myCourseService implements CourseService {
     @Override
     public CourseSection getCourseSectionByClass(int classId) {
         CourseSection courseSection = new CourseSection();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select cs.section_id,section_name,total_capacity,left_capacity from "
-                             + "(select section_id from course_section_class where class_id=?) csc "
-                             + "join course_section cs on csc.section_id=cs.section_id")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select cs.section_id,section_name,total_capacity,left_capacity from "
+                            + "(select section_id from course_section_class where class_id=?) csc "
+                            + "join course_section cs on csc.section_id=cs.section_id");
             stmt.setInt(1, classId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -327,12 +333,13 @@ public class myCourseService implements CourseService {
     @Override
     public List<Student> getEnrolledStudentsInSemester(String courseId, int semesterId) {
         List<Student> studentList = new ArrayList<>();
-        try (Connection connection = SQLDataSource.getInstance().getSQLConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "select s2.sid,first_name,last_name,enrolled_date,m.major_id,major_name,d.dept_id,dept_name from "
-                             + "(select section_id from course_section where course_id=? and semester_id=?) s1 "
-                             + "join student_courses sc on s1.section_id=sc.section_id join students s2 on sc.sid = s2.sid "
-                             + "join majors m on s2.major_id = m.major_id join department d on m.dept_id = d.dept_id")) {
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(
+                    "select s2.sid,first_name,last_name,enrolled_date,m.major_id,major_name,d.dept_id,dept_name from "
+                            + "(select section_id from course_section where course_id=? and semester_id=?) s1 "
+                            + "join student_courses sc on s1.section_id=sc.section_id join students s2 on sc.sid = s2.sid "
+                            + "join majors m on s2.major_id = m.major_id join department d on m.dept_id = d.dept_id");
             stmt.setString(1, courseId);
             stmt.setInt(2, semesterId);
             ResultSet rs = stmt.executeQuery();

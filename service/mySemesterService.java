@@ -20,26 +20,21 @@ public class mySemesterService implements SemesterService {
     public int addSemester(String name, Date begin, Date end) {
         int id = 0;
         try {
-            if (begin.compareTo(end) > 0) {
-                //               throw new IntegrityViolationException();
-            } else {
-                Connection connection = SQLDataSource.getInstance().getSQLConnection();
-                sql = "insert into semester(semester_id, semester_name, begin_time, end_time)\n" +
-                        "values (default, ?, ?, ?)\n" +
-                        "on conflict do nothing\n" +
-                        "returning semester_id;";
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, name);
-                preparedStatement.setDate(2, begin);
-                preparedStatement.setDate(3, end);
-                preparedStatement.execute();
-                ResultSet resultSet = preparedStatement.getResultSet();
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            sql = "insert into semester(semester_id, semester_name, begin_time, end_time)\n" +
+                    "values (default, ?, ?, ?)\n" +
+                    "on conflict do nothing\n";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, name);
+            preparedStatement.setDate(2, begin);
+            preparedStatement.setDate(3, end);
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if (resultSet.next())
                 id = resultSet.getInt(1);
-                resultSet.close();
-                preparedStatement.close();
-                connection.close();
-
-            }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
 //            preparedStatement = connection.prepareStatement(sql_addSemester);
 //            preparedStatement.setString(1, name);
 //            preparedStatement.setDate(2, begin);
