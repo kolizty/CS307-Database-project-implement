@@ -166,16 +166,25 @@ public class myUserService implements UserService {
             if (resultSet.next()) {
                 user.id = resultSet.getInt(1);
                 //判断中英文名
-                String firstName = resultSet.getString(2).trim();
-                String lastName = resultSet.getString(3).trim();
-                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z') &&
-                        (lastName.charAt(0) >= 'A' && lastName.charAt(0) <= 'z')) {
-                    //英文名
-                    user.fullName = resultSet.getString(2) + " " + resultSet.getString(3);
+                String firstName = resultSet.getString(2);
+                String lastName = resultSet.getString(3);
+                String regex = "^[a-zA-Z ]+$";
+                if (firstName.matches(regex) && lastName.matches(regex)) {
+                    user.fullName = firstName + " " + lastName;
                 } else {
-                    //中文名
-                    user.fullName = resultSet.getString(2) + resultSet.getString(3);
+                    user.fullName = firstName + lastName;
                 }
+
+//                String firstName = resultSet.getString(2).trim();
+//                String lastName = resultSet.getString(3).trim();
+//                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z') &&
+//                        (lastName.charAt(0) >= 'A' && lastName.charAt(0) <= 'z')) {
+//                    //英文名
+//                    user.fullName = resultSet.getString(2) + " " + resultSet.getString(3);
+//                } else {
+//                    //中文名
+//                    user.fullName = resultSet.getString(2) + resultSet.getString(3);
+//                }
             } else {
                 sql = "select sid,first_name,last_name from students where sid=(?);";
                 preparedStatement = connection.prepareStatement(sql);
@@ -184,17 +193,25 @@ public class myUserService implements UserService {
                 resultSet = preparedStatement.getResultSet();
                 resultSet.next();
                 user.id = resultSet.getInt(1);
-                //判断中英文名
-                String firstName = resultSet.getString(2).trim();
-                String lastName = resultSet.getString(3).trim();
-                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z') &&
-                        (lastName.charAt(0) >= 'A' && lastName.charAt(0) <= 'z')) {
-                    //英文名
-                    user.fullName = resultSet.getString(2) + " " + resultSet.getString(3);
+                String firstName = resultSet.getString(2);
+                String lastName = resultSet.getString(3);
+                String regex = "^[a-zA-Z ]+$";
+                if (firstName.matches(regex) && lastName.matches(regex)) {
+                    user.fullName = firstName + " " + lastName;
                 } else {
-                    //中文名
-                    user.fullName = resultSet.getString(2) + resultSet.getString(3);
+                    user.fullName = firstName + lastName;
                 }
+                //判断中英文名
+//                String firstName = resultSet.getString(2).trim();
+//                String lastName = resultSet.getString(3).trim();
+//                if ((firstName.charAt(0) >= 'A' && firstName.charAt(0) <= 'z') &&
+//                        (lastName.charAt(0) >= 'A' && lastName.charAt(0) <= 'z')) {
+//                    //英文名
+//                    user.fullName = resultSet.getString(2) + " " + resultSet.getString(3);
+//                } else {
+//                    //中文名
+//                    user.fullName = resultSet.getString(2) + resultSet.getString(3);
+//                }
             }
             resultSet.close();
             preparedStatement.close();
