@@ -71,9 +71,9 @@ public class myMajorService implements MajorService {
         } catch (SQLException e) {
 
         }
-//        try {
-//            Connection connection = SQLDataSource.getInstance().getSQLConnection();
-//
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+
 //            //删除majorId对应student_courses中的内容
 //            String sql_delete_student_courses = "delete\n" +
 //                    "from student_courses\n" +
@@ -108,9 +108,17 @@ public class myMajorService implements MajorService {
 //
 //            preparedStatement.close();
 //            connection.close();
-//        } catch (SQLException e) {
-////            throw new EntityNotFoundException();
-//        }
+
+            String sql_delete_majors = "delete from majors where major_id=(?);";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql_delete_majors);
+            preparedStatement.setInt(1, majorId);
+            preparedStatement.execute();
+
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+//            throw new EntityNotFoundException();
+        }
     }
 
     @Override

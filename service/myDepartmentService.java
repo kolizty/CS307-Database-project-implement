@@ -79,8 +79,8 @@ public class myDepartmentService implements DepartmentService {
         } catch (SQLException e) {
 
         }
-//        try {
-//            Connection connection = SQLDataSource.getInstance().getSQLConnection();
+        try {
+            Connection connection = SQLDataSource.getInstance().getSQLConnection();
 //            sql = "select major_id from majors where dept_id=(?);";
 //            PreparedStatement preparedStatement = connection.prepareStatement(sql);
 //            preparedStatement.setInt(1, departmentId);
@@ -135,9 +135,18 @@ public class myDepartmentService implements DepartmentService {
 //            resultSet.close();
 //            preparedStatement.close();
 //            connection.close();
-//        } catch (SQLException e) {
-//
-//        }
+            //删除department
+            sql = "delete from department where dept_id=(?);";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, departmentId);
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+
+        }
     }
 
 
