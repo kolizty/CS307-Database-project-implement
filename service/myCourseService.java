@@ -2,6 +2,9 @@ package myimplement.service;
 
 import cn.edu.sustech.cs307.database.SQLDataSource;
 import cn.edu.sustech.cs307.dto.*;
+import cn.edu.sustech.cs307.dto.prerequisite.AndPrerequisite;
+import cn.edu.sustech.cs307.dto.prerequisite.CoursePrerequisite;
+import cn.edu.sustech.cs307.dto.prerequisite.OrPrerequisite;
 import cn.edu.sustech.cs307.dto.prerequisite.Prerequisite;
 import cn.edu.sustech.cs307.service.CourseService;
 
@@ -11,11 +14,35 @@ import java.time.DayOfWeek;
 import java.util.*;
 
 public class myCourseService implements CourseService {
-//    public void addPrerequisite(String courseId, Prerequisite prerequisite, StringBuffer sql) {
-//        if ()
-//
-//    }
-
+    public ArrayList<String> buildpre(Prerequisite prerequisite,StringBuffer str,int numa,int numb,ArrayList<String> sql){
+        if (prerequisite instanceof AndPrerequisite){
+            numa=numa+1;
+            for (Prerequisite i:((AndPrerequisite) prerequisite).terms){
+                str.append("and");
+                str.append(numa);
+                str.append(".");
+                buildpre(i,str,numa,numb,sql);
+                str.delete(str.lastIndexOf(".")-4,str.lastIndexOf(".")+1);
+            }
+        }
+        if (prerequisite instanceof OrPrerequisite){
+            numb=numb+1;
+            for (Prerequisite i:((OrPrerequisite) prerequisite).terms){
+                str.append("or");
+                str.append(numb);
+                str.append(".");
+                buildpre(i,str,numa,numb,sql);
+                str.delete(str.lastIndexOf(".")-3,str.lastIndexOf(".")+1);
+            }
+        }
+        if (prerequisite instanceof CoursePrerequisite){
+            String cid=((CoursePrerequisite) prerequisite).courseID;
+            str.append(cid);
+            sql.add(str.toString());
+            str.delete(str.length()-cid.length(),str.length());
+        }
+        return sql;
+    }
     @Override
     public void addCourse(String courseId, String courseName, int credit, int classHour, Course.CourseGrading grading, @Nullable Prerequisite prerequisite) {
         try {
@@ -23,19 +50,29 @@ public class myCourseService implements CourseService {
             PreparedStatement stmt1 = connection.prepareStatement(
                     "insert into courses(course_id,course_name,credit,class_hour,grading)" + "values(?,?,?,?,?::grading_type)");
             PreparedStatement stmt2 = connection.prepareStatement(
-                    "insert into course_prerequisites(course_id,pre_course_id,prerequisite)" + "values(?,?,?)");
+                    "insert into course_prerequisites(course_id,pre_course_id,path)" + "values(?,?,?::ltree)");
             stmt1.setString(1, courseId);
             stmt1.setString(2, courseName);
             stmt1.setInt(3, credit);
             stmt1.setInt(4, classHour);
             stmt1.setString(5, grading.toString());
             stmt1.execute();
-//            stmt2.setString(1, courseId);
-//            if (prerequisite != null) {
-//
-//                stmt2.execute();
-//            }
-            //todo: insert prerequisites
+            if (prerequisite != null) {
+                ArrayList<String> path=new ArrayList<>();
+                StringBuffer s=new StringBuffer();
+                path=buildpre(prerequisite,s,0,0,path);
+                for (String i:path){
+                    stmt2.setString(1,courseId);
+                    if (i.lastIndexOf(".")==-1){
+                        stmt2.setString(2,i);
+                        stmt2.setString(3,"");
+                    } else{
+                        stmt2.setString(2,i.substring(i.lastIndexOf(".") + 1));
+                        stmt2.setString(3,i.substring(0,i.lastIndexOf(".")));
+                    }
+                    stmt2.execute();
+                }
+            }
             stmt1.close();
             stmt2.close();
             connection.close();
